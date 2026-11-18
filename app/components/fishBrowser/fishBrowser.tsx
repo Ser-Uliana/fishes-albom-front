@@ -20,13 +20,13 @@ export function FishBrowser() {
     : fish.filter((f) => f.idType === selectedType);
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row">
       <SideMenu
         types={types}
         selectedType={selectedType}
         onSelect={setSelectedType}
       />
-      <main className="flex-1 p-6">
+      <main className="fmin-w-0 flex-1 p-4">
         <FishGrid fish={filtered} />
       </main>
     </div>
