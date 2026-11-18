@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { getFish, getFishTypes, Fish } from "@/src/api";
-import { SideMenu } from "../sideMenu/page";
-import { FishGrid } from "../fishGrid/page";
+import { SideMenu } from "../sideMenu/sideMenu";
+import { FishGrid } from "../fishGrid/fishGrid";
 
 export function FishBrowser() {
   const [types, setTypes] = useState<any[]>([]);
