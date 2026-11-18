@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type Props = {
   types: { id: number; name: string }[];
@@ -11,9 +11,10 @@ type Props = {
 export function SideMenu({ types, selectedType, onSelect }: Props) {
   const [open, setOpen] = useState(false);
 
-  const base = "block w-full rounded-lg px-4 py-2 text-left text-sm font-medium";
-  const active = "bg-gray-100 text-gray-900";
-  const idle = "text-gray-500 hover:bg-gray-50";
+  const base =
+    "block w-full rounded-xl px-4 py-3 text-left text-base font-medium transition-colors md:py-2 md:text-sm";
+  const active = "bg-gray-900 text-white";
+  const idle = "text-gray-600 hover:bg-gray-100 active:bg-gray-200";
 
   const currentName =
     selectedType === null
@@ -22,8 +23,15 @@ export function SideMenu({ types, selectedType, onSelect }: Props) {
 
   const handleSelect = (id: number | null) => {
     onSelect(id);
-    setOpen(false); // закриваємо випадайку після вибору
+    setOpen(false);
   };
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   const list = (
     <ul className="space-y-1">
@@ -50,48 +58,62 @@ export function SideMenu({ types, selectedType, onSelect }: Props) {
 
   return (
     <>
-      {/* Мобільна версія: бургер + випадайка */}
-      <div className="relative border-b border-gray-100 bg-white md:hidden">
-        <button
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-controls="mobile-menu"
-          aria-label="Відкрити меню категорій"
-          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-900"
-        >
-          <span>{currentName}</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+      {/* Розпірки: резервують місце під fixed-меню */}
+      <div className="h-14 shrink-0 md:hidden" aria-hidden="true" />
+      <div className="hidden w-64 shrink-0 md:block" aria-hidden="true" />
+
+      {/* Мобільна версія: фіксована верхня панель */}
+      <div className="fixed inset-x-0 top-0 z-30 md:hidden">
+        <div className="relative z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
+          <button
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+            aria-label="Відкрити меню категорій"
+            className="flex h-14 w-full items-center justify-between px-4 text-left"
           >
-            {open ? (
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
+            <span className="flex flex-col leading-tight">
+              <span className="text-xs text-gray-400">Категорія</span>
+              <span className="text-base font-semibold text-gray-900">
+                {currentName}
+              </span>
+            </span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className={`h-6 w-6 text-gray-700 transition-transform ${
+                open ? "rotate-180" : ""
+              }`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
 
         {open && (
-          <div
-            id="mobile-menu"
-            className="absolute inset-x-0 top-full z-20 max-h-[70vh] overflow-y-auto border-b border-gray-100 bg-white p-4 shadow-lg"
-          >
-            {list}
-          </div>
+          <>
+            <div
+              className="fixed inset-0 z-10 bg-black/40"
+              onClick={() => setOpen(false)}
+              aria-hidden="true"
+            />
+            <div
+              id="mobile-menu"
+              className="absolute inset-x-0 top-full z-20 max-h-[70vh] overflow-y-auto rounded-b-2xl bg-white p-3 shadow-xl"
+            >
+              {list}
+            </div>
+          </>
         )}
       </div>
 
-      {/* Десктопна версія: бокове меню */}
-      <div className="hidden h-screen w-64 flex-col border-e border-gray-100 bg-white md:flex">
-        <div className="p-4">
-          <div className="mt-4">{list}</div>
-        </div>
-      </div>
+      {/* Десктоп: фіксована бокова панель */}
+      <aside className="fixed inset-y-0 start-0 hidden w-64 overflow-y-auto border-e border-gray-100 bg-white p-4 md:block">
+        {list}
+      </aside>
     </>
   );
 }
