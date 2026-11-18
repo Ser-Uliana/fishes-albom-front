@@ -233,37 +233,6 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
           />
         </div>
       )}
-
-      {isEditing && (
-        <div className="mt-2 space-y-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
-          />
-          <div className="flex gap-2">
-            <button type="button" onClick={() => fileInputRef.current?.click()}
-              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm sm:flex-none sm:py-1">
-              Змінити фото
-            </button>
-            {draft.image && (
-              <button type="button" onClick={() => set("image", null as Fish["image"])}
-                className="rounded-lg border border-red-300 px-3 py-2 text-sm text-red-600 sm:py-1">
-                Видалити
-              </button>
-            )}
-          </div>
-          <input
-            value={draft.image?.startsWith("data:") ? "" : draft.image ?? ""}
-            onChange={(e) => set("image", e.target.value as Fish["image"])}
-            className={inputClass}
-            placeholder="або встав посилання на фото"
-          />
-        </div>
-      )}
-
       {isEditing ? (
         <textarea
           value={draft.description ?? ""}
