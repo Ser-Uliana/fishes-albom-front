@@ -12,9 +12,7 @@ function fileToDataUrl(file: File, maxSize = 800): Promise<string> {
       const canvas = document.createElement("canvas");
       canvas.width = Math.round(img.width * scale);
       canvas.height = Math.round(img.height * scale);
-      canvas
-        .getContext("2d")!
-        .drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(url);
       resolve(canvas.toDataURL("image/jpeg", 0.8));
     };
@@ -26,6 +24,8 @@ function fileToDataUrl(file: File, maxSize = 800): Promise<string> {
   });
 }
 
+
+
 function FishCard({ fish: initialFish }: { fish: Fish }) {
   const [fish, setFish] = useState<Fish>(initialFish);
   const [draft, setDraft] = useState<Fish>(initialFish);
@@ -34,6 +34,8 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
   const [error, setError] = useState("");
   const [color, setColor] = useState("gray");
   const [types, setTypes] = useState<FishType[]>([]);
+  const galleryRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     getFishColorById(fish.idType).then(setColor).catch(() => {});
@@ -92,7 +94,7 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    e.target.value = ""; 
+    e.target.value = "";
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       setError("Оберіть файл із зображенням");
@@ -171,10 +173,66 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
     className="mx-auto h-48 w-full object-contain sm:h-40"
   />
 ) : (
-  <div className="flex h-40 items-center justify-center rounded-lg bg-gray-100 text-sm text-gray-400">
+  <div className="flex h-48 items-center justify-center rounded-lg bg-gray-100 text-sm text-gray-400 sm:h-40">
     Немає фото
   </div>
 )}
+
+      {isEditing && (
+        <div className="mt-2 space-y-2">
+          {/* Галерея */}
+          <input
+            ref={galleryRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+          />
+          {/* Камера (на телефоні відкриє камеру одразу) */}
+          <input
+            ref={cameraRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleImageChange}
+            className="hidden"
+          />
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => galleryRef.current?.click()}
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            >
+              🖼️ З галереї
+            </button>
+            <button
+              type="button"
+              onClick={() => cameraRef.current?.click()}
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            >
+              📷 Камера
+            </button>
+          </div>
+
+          {draft.image && (
+            <button
+              type="button"
+              onClick={() => set("image", null as Fish["image"])}
+              className="w-full rounded-lg border border-red-300 px-3 py-2 text-sm text-red-600"
+            >
+              Видалити фото
+            </button>
+          )}
+
+          <input
+            value={draft.image?.startsWith("data:") ? "" : draft.image ?? ""}
+            onChange={(e) => set("image", e.target.value as Fish["image"])}
+            className={inputClass}
+            placeholder="або встав посилання на фото"
+          />
+        </div>
+      )}
 
       {isEditing && (
         <div className="mt-2 space-y-2">
