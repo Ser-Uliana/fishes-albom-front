@@ -1,3 +1,4 @@
+'use client'
 import { FishBrowser } from "./components/fishBrowser/fishBrowser";
 
 
