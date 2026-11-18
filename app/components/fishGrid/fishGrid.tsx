@@ -109,7 +109,7 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
   const shownImage = isEditing ? draft.image : fish.image;
 
   const inputClass =
-    "w-full rounded-lg border border-gray-300 px-2 py-1 text-sm";
+  "w-full rounded-lg border border-gray-300 px-3 py-2 text-base sm:px-2 sm:py-1 sm:text-sm";
 
   return (
     <div
@@ -121,7 +121,7 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
           <select
             value={draft.idType}
             onChange={(e) => changeType(Number(e.target.value))}
-            className="rounded-full border border-gray-300 px-3 py-1 text-xs font-semibold uppercase"
+            className="rounded-full border border-gray-300 px-3 py-2 text-base font-semibold uppercase sm:py-1 sm:text-xs"
           >
             {types.length === 0 && (
               <option value={draft.idType}>{draft.fishType?.name}</option>
@@ -146,7 +146,7 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
             checked={isEditing ? draft.isCaught : fish.isCaught}
             disabled={!isEditing}
             onChange={(e) => set("isCaught", e.target.checked)}
-            className="h-5 w-5"
+             className="h-6 w-6 sm:h-5 sm:w-5"
           />
           Піймали
         </label>
@@ -168,7 +168,7 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
   <img
     src={shownImage}
     alt={fish.name}
-    className="mx-auto h-40 w-full object-contain"
+    className="mx-auto h-48 w-full object-contain sm:h-40"
   />
 ) : (
   <div className="flex h-40 items-center justify-center rounded-lg bg-gray-100 text-sm text-gray-400">
@@ -186,19 +186,13 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
             className="hidden"
           />
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="rounded-lg border border-gray-300 px-3 py-1 text-sm"
-            >
+            <button type="button" onClick={() => fileInputRef.current?.click()}
+              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm sm:flex-none sm:py-1">
               Змінити фото
             </button>
             {draft.image && (
-              <button
-                type="button"
-                onClick={() => set("image", null as Fish["image"])}
-                className="rounded-lg border border-red-300 px-3 py-1 text-sm text-red-600"
-              >
+              <button type="button" onClick={() => set("image", null as Fish["image"])}
+                className="rounded-lg border border-red-300 px-3 py-2 text-sm text-red-600 sm:py-1">
                 Видалити
               </button>
             )}
@@ -224,7 +218,7 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
         <p className="mt-3 text-sm text-gray-700">{fish.description}</p>
       )}
 
-      <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+      <div className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
         {isEditing ? (
           <>
             <label className="text-gray-500">
@@ -311,29 +305,21 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
 
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
-      <div className="mt-4 flex justify-end gap-2">
+      <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         {isEditing ? (
           <>
-            <button
-              onClick={cancelEdit}
-              disabled={saving}
-              className="rounded-lg border border-gray-300 px-3 py-1 text-sm"
-            >
+            <button onClick={cancelEdit} disabled={saving}
+              className="rounded-lg border border-gray-300 px-4 py-3 text-base sm:py-1 sm:text-sm">
               Скасувати
             </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="rounded-lg bg-blue-600 px-3 py-1 text-sm text-white disabled:opacity-50"
-            >
+            <button onClick={handleSave} disabled={saving}
+              className="rounded-lg bg-blue-600 px-4 py-3 text-base text-white disabled:opacity-50 sm:py-1 sm:text-sm">
               {saving ? "Збереження…" : "Зберегти"}
             </button>
           </>
         ) : (
-          <button
-            onClick={startEdit}
-            className="rounded-lg bg-gray-800 px-3 py-1 text-sm text-white"
-          >
+          <button onClick={startEdit}
+            className="rounded-lg bg-gray-800 px-4 py-3 text-base text-white sm:py-1 sm:text-sm">
             Редагувати
           </button>
         )}
@@ -348,7 +334,7 @@ export function FishGrid({ fish }: { fish: Fish[] }) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
       {fish.map((f) => (
         <FishCard key={f.id} fish={f} />
       ))}
