@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { getFish, getFishTypes, Fish } from "@/src/api";
-import { SideMenu } from "../sideMenu/sideMenu";
-import { FishGrid } from "../fishGrid/fishGrid";
+import { SideMenu } from "../components/sideMenu/sideMenu";
+import { FishGrid } from "../components/fishGrid/fishGrid";
 
-export function FishBrowser() {
+export default function FishBrowserPage() {
   const [types, setTypes] = useState<any[]>([]);
   const [fish, setFish] = useState<Fish[]>([]);
   const [selectedType, setSelectedType] = useState<number | null>(null);

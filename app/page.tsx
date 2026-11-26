@@ -1,7 +1,7 @@
 'use client'
-import { FishBrowser } from "./components/fishBrowser/fishBrowser";
+import LoginModal from "./login/page";
 
 
 export default function Home() {
-  return <FishBrowser />;
+  return <LoginModal />;
 }
