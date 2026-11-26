@@ -27,7 +27,7 @@ export default function CreateFishModal({
   const [idType, setIdType] = useState<number | "">("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState("");
-  const [date, setDate] = useState(today());
+  const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,6 +40,10 @@ export default function CreateFishModal({
   }, [open, onClose]);
 
   if (!open) return null;
+
+  useEffect(() => {
+  setDate(today());
+}, []);
 
   const reset = () => {
     setName("");
