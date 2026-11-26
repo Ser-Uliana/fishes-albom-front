@@ -1,6 +1,6 @@
 'use client'
 
-import { editFish, Fish, FishType, getFishColorById, getFishTypes } from "@/src/api";
+import { deleteFish, editFish, Fish, FishType, getFishColorById, getFishTypes, getToken } from "@/src/api";
 import { useEffect, useRef, useState } from "react";
 
 function fileToDataUrl(file: File, maxSize = 800): Promise<string> {
@@ -24,9 +24,13 @@ function fileToDataUrl(file: File, maxSize = 800): Promise<string> {
   });
 }
 
-
-
-function FishCard({ fish: initialFish }: { fish: Fish }) {
+function FishCard({
+  fish: initialFish,
+  onDelete,
+}: {
+  fish: Fish;
+  onDelete: (id: number) => void;
+}) {
   const [fish, setFish] = useState<Fish>(initialFish);
   const [draft, setDraft] = useState<Fish>(initialFish);
   const [isEditing, setIsEditing] = useState(false);
@@ -65,6 +69,7 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
 
   const cancelEdit = () => {
     setDraft(fish);
+    setError("");
     setIsEditing(false);
   };
 
@@ -87,10 +92,22 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm(`Видалити «${fish.name}»?`)) return;
+    setSaving(true);
+    setError("");
+    try {
+      await deleteFish(fish.id);
+      onDelete(fish.id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Не вдалося видалити рибу");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const set = <K extends keyof Fish>(key: K, value: Fish[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -111,7 +128,7 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
   const shownImage = isEditing ? draft.image : fish.image;
 
   const inputClass =
-  "w-full rounded-lg border border-gray-300 px-3 py-2 text-base sm:px-2 sm:py-1 sm:text-sm";
+    "w-full rounded-lg border border-gray-300 px-3 py-2 text-base sm:px-2 sm:py-1 sm:text-sm";
 
   return (
     <div
@@ -148,7 +165,7 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
             checked={isEditing ? draft.isCaught : fish.isCaught}
             disabled={!isEditing}
             onChange={(e) => set("isCaught", e.target.checked)}
-             className="h-6 w-6 sm:h-5 sm:w-5"
+            className="h-6 w-6 sm:h-5 sm:w-5"
           />
           Піймали
         </label>
@@ -167,16 +184,16 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
       )}
 
       {shownImage ? (
-  <img
-    src={shownImage}
-    alt={fish.name}
-    className="mx-auto h-48 w-full object-contain sm:h-40"
-  />
-) : (
-  <div className="flex h-48 items-center justify-center rounded-lg bg-gray-100 text-sm text-gray-400 sm:h-40">
-    Немає фото
-  </div>
-)}
+        <img
+          src={shownImage}
+          alt={fish.name}
+          className="mx-auto h-48 w-full object-contain sm:h-40"
+        />
+      ) : (
+        <div className="flex h-48 items-center justify-center rounded-lg bg-gray-100 text-sm text-gray-400 sm:h-40">
+          Немає фото
+        </div>
+      )}
 
       {isEditing && (
         <div className="mt-2 space-y-2">
@@ -233,6 +250,7 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
           />
         </div>
       )}
+
       {isEditing ? (
         <textarea
           value={draft.description ?? ""}
@@ -335,13 +353,24 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
       <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         {isEditing ? (
           <>
+            {/* Видалення: тільки в режимі редагування і тільки для залогіненого */}
+            {getToken() && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={saving}
+                className="rounded-lg border border-red-300 px-4 py-3 text-base text-red-600 disabled:opacity-50 sm:mr-auto sm:py-1 sm:text-sm"
+              >
+                Видалити рибу
+              </button>
+            )}
             <button onClick={cancelEdit} disabled={saving}
               className="rounded-lg border border-gray-300 px-4 py-3 text-base sm:py-1 sm:text-sm">
               Скасувати
             </button>
             <button onClick={handleSave} disabled={saving}
               className="rounded-lg bg-blue-600 px-4 py-3 text-base text-white disabled:opacity-50 sm:py-1 sm:text-sm">
-              {saving ? "Збереження…" : "Зберегти"}
+              {saving ? "Зачекайте…" : "Зберегти"}
             </button>
           </>
         ) : (
@@ -356,14 +385,21 @@ function FishCard({ fish: initialFish }: { fish: Fish }) {
 }
 
 export function FishGrid({ fish }: { fish: Fish[] }) {
-  if (fish.length === 0) {
+  const [deletedIds, setDeletedIds] = useState<number[]>([]);
+  const visible = fish.filter((f) => !deletedIds.includes(f.id));
+
+  if (visible.length === 0) {
     return <p className="text-gray-500">У цій категорії поки немає риб.</p>;
   }
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
-      {fish.map((f) => (
-        <FishCard key={f.id} fish={f} />
+      {visible.map((f) => (
+        <FishCard
+          key={f.id}
+          fish={f}
+          onDelete={(id) => setDeletedIds((ids) => [...ids, id])}
+        />
       ))}
     </div>
   );

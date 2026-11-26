@@ -34,7 +34,7 @@ export default function FishBrowserPage() {
         <div className="mb-4 flex justify-end">
           <button
             onClick={() => setIsOpen(true)}
-            className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+            className="rounded-lg bg-black px-4 py-2.5 text-sm font-semibold text-white"
           >
             Додати рибу
           </button>
