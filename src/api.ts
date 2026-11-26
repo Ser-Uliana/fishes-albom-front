@@ -174,3 +174,37 @@
     }
     return res.text();
   }
+
+  export async function addFish(data: Omit<Fish, "id" | "fishType">) {
+  const {
+    name,
+    image,
+    description,
+    isCaught,
+    place,
+    bait,
+    date,
+    weight,
+    comments,
+    idType,
+  } = data;
+
+  const res = await authFetch(`/fish`, {
+    method: "POST",
+    body: JSON.stringify({
+      name,
+      image,
+      description,
+      isCaught,
+      place,
+      bait,
+      date,
+      weight,
+      comments,
+      idType,
+    }),
+  });
+
+  if (!res.ok) throw new Error(await readError(res, "Не вдалося додати рибу"));
+  return res.json();
+}
