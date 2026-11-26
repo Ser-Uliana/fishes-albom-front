@@ -1,6 +1,5 @@
 "use client";
-
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { addFish } from "@/src/api";
 
 export type FishTypeOption = { id: number; name: string };
@@ -30,20 +29,49 @@ export default function CreateFishModal({
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const fileToDataUrl = (file: File, maxSize = 1024, quality = 0.8) =>
+  new Promise<string>((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Не вдалося прочитати фото"));
+    };
+    img.src = url;
+  });
+  const handleFile = async (e: ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    setImage(await fileToDataUrl(file));
+    setError(null);
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Помилка фото");
+  }
+};
 
-  // закриття по Escape
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
-
-  if (!open) return null;
-
   useEffect(() => {
-  setDate(today());
-}, []);
+    setDate(today());
+  }, []);
+  if (!open) return null;
 
   const reset = () => {
     setName("");
@@ -52,6 +80,7 @@ export default function CreateFishModal({
     setImage("");
     setDate(today());
     setError(null);
+    if (fileRef.current) fileRef.current.value = "";
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -153,16 +182,47 @@ export default function CreateFishModal({
             />
           </label>
 
-          <label className="flex flex-col gap-1.5 text-sm">
-            <span className="font-semibold">Посилання на фото</span>
+          <div className="flex flex-col gap-1.5 text-sm">
+            <span className="font-semibold">Фото</span>
+
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFile}
+              className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
+            />
+
             <input
               className={inputClass}
               type="url"
-              value={image}
+              value={image.startsWith("data:") ? "" : image}
               onChange={(e) => setImage(e.target.value)}
-              placeholder="https://..."
+              placeholder="або встав посилання https://..."
             />
-          </label>
+          </div>
+
+          {image && (
+            <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={image}
+                alt="Попередній перегляд"
+                className="max-h-44 w-full rounded-lg object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setImage("");
+                  if (fileRef.current) fileRef.current.value = "";
+                }}
+                aria-label="Прибрати фото"
+                className="absolute right-2 top-2 rounded-full bg-black/60 px-2 text-lg leading-none text-white hover:bg-black/80"
+              >
+                ×
+              </button>
+            </div>
+          )}
 
           {image && (
             // eslint-disable-next-line @next/next/no-img-element
